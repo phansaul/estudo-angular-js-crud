@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html ng-app="listaTelefonica">
+<head>
+	<title>sup</title>
+	<script src="node_modules/angular/angular.js"></script>
+	<script src="node_modules/angular/angular-messages.js"></script>
+	<link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap-theme.css">
+	<link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.min.css">	
+	<meta charset="utf-8">
+	<style>
+		.jumbotron{
+			text-align: center;
+			margin-top:20px;
+			padding:20px;
+		}
+		.selecionado{
+			background-color: yellow;
+		}
+		.negrito{
+			font-weight: bold;
+		}
+	</style>
+	<script>
+		angular.module("listaTelefonica", ["ngMessages"]);
+		angular.module("listaTelefonica").controller("listaTelefonicaCtrl", function($scope){
+			$scope.app = "Lista Telefonica";
+			$scope.contatos = [
+				{nome:"Pedro", telefone: "99998888", date: new Date(), operadora: {nome: "Oi", codigo: 14, categoria:"Celular", preco: 1}},
+				{nome:"Paulo", telefone: "98192932", date: new Date(), operadora: {nome: "Vivo", codigo: 15, categoria:"Celular", preco: 2}},
+				{nome:"Jão", telefone: "97563852", date: new Date(), operadora: {nome: "TIM", codigo: 41, categoria:"Celular", preco: 0.75}},
+					
+			];
+			$scope.operadoras = [
+				{nome: "Oi", codigo: 14, categoria:"Celular", preco: 1},
+				{nome: "VIVO", codigo: 15, categoria:"Celular", preco: 2},
+				{nome: "TIM", codigo: 41, categoria:"Celular", preco: 0.75},
+				{nome: "GVT", codigo: 25, categoria:"Fixo", preco: 1},
+				{nome: "Embratel", codigo: 21, categoria:"Fixo", preco: 0.35},	
+			];
+			$scope.adicionarContato = function(contato){
+				$scope.contatos.push(angular.copy(contato));
+				delete $scope.contato;
+				$scope.contatoForm.$setPristine();
+			};
+			$scope.apagarContato = function(contatos){
+				$scope.contatos = contatos.filter(function(contato){
+					if (!contato.selecionado) return contato;
+
+				});
+			};
+			$scope.isContatoSelecionado = function(contatos){
+				return contatos.some(function(contato){
+					return contato.selecionado;
+				});
+			};
+			$scope.classe1 = "selecionado";
+			$scope.classe2 = "negrito";
+
+			$scope.ordenarPor = function(campo){
+				$scope.ordenarProp = campo;
+				$scope.dirOrd = !$scope.dirOrd;
+			};
+		});
+	</script>
+	<script src="bundle.js"></script>
+</head>
+<body ng-controller="listaTelefonicaCtrl">
+	<div class="jumbotron col-md-4 col-md-offset-4">
+		<h3 ng-bind="app"></h3>
+		<input class="form-control" type="text" ng-model="search" placeholder="Pesquisar">
+		<table class="table" ng-show="contatos.length > 0">
+			<tr>
+				<th></th>
+				<th><span ng-click="ordenarPor('nome')">Nome</span></th>
+				<th><span ng-click="ordenarPor('telefone')">Telefone</span></th>
+				<th><span ng-click="ordenarPor('operadora')">Operadora</span></th> 
+				<th><span ng-click="ordenarPor('date')">Data</span></th>
+			</tr>
+			<tr ng-class="{'selecionado negrito': contato.selecionado}" ng-repeat="contato in contatos | filter: {nome: search} | orderBy: ordenarProp:dirOrd">
+				<td><input type="checkbox" ng-class="" ng-model="contato.selecionado" /></td>
+				<td>{{contato.nome}}</td>
+				<td>{{contato.telefone}}</td>
+				<td>{{contato.operadora.nome}}</td>
+				<td>{{contato.date | date:'dd/MM/yyyy HH:mm'}}</td>
+
+			</tr>
+
+		</table>
+		
+		<hr />
+		<form name="contatoForm">
+			<div class="form-group">
+				<input class="form-control" type="text" ng-model="contato.nome" placeholder="Nome" name="nome" ng-required="true" ng-minlength="10"/>
+			</div>
+			<div class="form-group">
+				<input class="form-control" id="tel" type="text" ng-model="contato.telefone" placeholder="Telefone" name="telefone" ng-required="true" maxlength="11" />
+			</div>
+
+			<div class="form-group">
+				<select class="form-control" ng-model="contato.operadora" ng-options="operadora.nome + '(' + operadora.preco + ')' for operadora in operadoras | orderBy:'nome'">
+					<option value="">Selecione uma Operadora</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<button class="btn btn-primary btn-block" ng-click="adicionarContato(contato)" ng-disabled="contatoForm.$invalid" name="add">Adicionar</button>
+			</div>
+			<div class="form-group">
+				<button class="btn btn-danger btn-block" ng-click="apagarContato(contatos)" ng-disabled="false" ng-if="isContatoSelecionado(contatos)">Apagar</button>
+			</div>
+		</form>
+
+		<!-- Mensagens de Alerta intuitivas -->
+
+		<div class="alert alert-danger" ng-show="contatoForm.$invalid && contatoForm.nome.$dirty && contatoForm.telefone.$dirty">
+			<div ng-messages="contatoForm.nome.$error">
+				<div ng-message="required">
+					Por favor, preencha o campo nome!
+				</div>
+				<div ng-message="minlength">
+					O campo nome deve ter no mínimo 10 caracteres.
+				</div>
+			</div>
+			<div ng-messages="contatoForm.telefone.$error">
+				<span ng-message="required">Por favor, preencha o campo telefone!</span>
+			</div>
+		</div>
+
+	</div>
+</body>
+
+<script type="text/javascript">
+	
+	$(document).ready(function() {
+
+
+	// Função que delimita o input para números somente
+    $("#tel").keydown(function (e) {
+      
+        if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
+            (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) || 
+            (e.keyCode >= 35 && e.keyCode <= 40)) {
+                 return;
+        }
+  
+        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+            e.preventDefault();
+        }
+    });
+
+	});
+
+</script>
+
+</html>	
